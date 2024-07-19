@@ -16,7 +16,7 @@ vim.g.have_nerd_font = true
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -104,6 +104,35 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Tab management keymaps
+vim.keymap.set('n', '<C-t>', ':tabnew<CR>', { desc = 'Open new tab' })
+vim.keymap.set('n', '<Tab>', '<cmd>BufferLineCycleNext<CR>', { desc = 'Next buffer' })
+vim.keymap.set('n', '<S-Tab>', '<cmd>BufferLineCyclePrev<CR>', { desc = 'Previous buffer' })
+
+vim.keymap.set('n', '<leader>w', function()
+  local bufnr = vim.fn.bufnr()
+  local nextbuf = vim.fn.bufnr '#'
+
+  if nextbuf ~= -1 and nextbuf ~= bufnr then
+    vim.cmd 'bnext'
+  else
+    vim.cmd 'NvimTreeToggle' -- Assuming you are using nvim-tree as file explorer
+  end
+  vim.cmd('bwipeout! ' .. bufnr)
+end, { desc = 'Close current buffer and go to next available buffer or file explorer' })
+
+-- Move cursor by words with Alt + Arrow keys in normal mode
+vim.api.nvim_set_keymap('n', '<A-Left>', 'b', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<A-Right>', 'w', { noremap = true, silent = true })
+
+-- Move cursor by words with Alt + Arrow keys in insert mode
+vim.api.nvim_set_keymap('i', '<A-Left>', '<C-o>b', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<A-Right>', '<C-o>w', { noremap = true, silent = true })
+
+-- Move cursor by words with Alt + Arrow keys in visual mode
+vim.api.nvim_set_keymap('v', '<A-Left>', 'b', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<A-Right>', 'w', { noremap = true, silent = true })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -130,19 +159,22 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
-local function my_on_attach(bufnr)
-  local api = require "nvim-tree.api"
+vim.api.nvim_create_autocmd('VimEnter', {
+  callback = function(data)
+    -- buffer is a directory
+    local directory = vim.fn.isdirectory(data.file) == 1
 
-  local function opts(desc)
-    return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
-  end
+    if not directory then
+      return
+    end
 
-  -- default mappings
-  api.config.mappings.default_on_attach(bufnr)
+    -- change to the directory
+    vim.cmd.cd(data.file)
 
-  -- custom mappings
-  vim.keymap.set('n', '<leader>e', api.tree.focus, {desc = 'nvim-tree: Focus'})
-end
+    -- open the tree
+    require('neo-tree.command').execute { toggle = true, dir = data.file }
+  end,
+})
 
 -- [[ Configure and install plugins ]]
 --
@@ -202,7 +234,7 @@ require('lazy').setup({
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
-        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>o', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       }
@@ -263,7 +295,11 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        pickers = {
+          colorscheme = {
+            enable_preview = true,
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -365,7 +401,7 @@ require('lazy').setup({
 
           -- Fuzzy find all the symbols in your current workspace.
           --  Similar to document symbols, except searches over your entire project.
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+          map('<leader>os', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
@@ -453,7 +489,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
-
+        biome = {},
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -540,13 +576,108 @@ require('lazy').setup({
   },
 
   {
-    "nvim-tree/nvim-tree.lua",
-      config = function()
-        require("nvim-tree").setup({
-          on_attach = my_on_attach,
-        })
-      end,
-      opts = {}
+    'nvim-neo-tree/neo-tree.nvim',
+    version = '*',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+      'MunifTanjim/nui.nvim',
+    },
+    cmd = 'Neotree',
+    keys = {
+      { '<leader>e', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
+    },
+    init = function()
+      vim.g.neo_tree_remove_legacy_commands = true
+      if vim.fn.argc() == 1 then
+        local stat = vim.loop.fs_stat(vim.fn.argv(0))
+        if stat and stat.type == 'directory' then
+          require 'neo-tree'
+        end
+      end
+    end,
+    opts = {
+      filesystem = {
+        window = {
+          mappings = {
+            ['\\'] = 'close_window',
+            ['<tab>'] = 'toggle_node',
+          },
+        },
+        commands = {
+          open_in_new_tab = function(state)
+            local node = state.tree:get_node()
+            if node.type == 'file' then
+              vim.cmd('tabnew ' .. node.path)
+            end
+          end,
+        },
+      },
+    },
+  },
+  {
+    'supermaven-inc/supermaven-nvim',
+    config = function()
+      require('supermaven-nvim').setup {
+        keymaps = {
+          accept_suggestion = '<S-Tab>',
+          clear_suggestion = '<C-]>',
+          accept_word = '<C-j>',
+          toggle = '<C-k>',
+        },
+        ignore_filetypes = { cpp = true },
+        color = {
+          suggestion_color = '#ffffff',
+          cterm = 244,
+        },
+        log_level = 'info', -- set to "off" to disable logging completely
+        disable_inline_completion = false, -- disables inline completion for use with cmp
+        disable_keymaps = false, -- disables built in keymaps for more manual control
+      }
+    end,
+  },
+  {
+    'akinsho/bufferline.nvim',
+    event = 'VeryLazy',
+    keys = {
+      { '<leader>bp', '<Cmd>BufferLineTogglePin<CR>', desc = 'Toggle Pin' },
+      { '<leader>bP', '<Cmd>BufferLineGroupClose ungrouped<CR>', desc = 'Delete Non-Pinned Buffers' },
+      { '<leader>bo', '<Cmd>BufferLineCloseOthers<CR>', desc = 'Delete Other Buffers' },
+      { '<leader>br', '<Cmd>BufferLineCloseRight<CR>', desc = 'Delete Buffers to the Right' },
+      { '<leader>bl', '<Cmd>BufferLineCloseLeft<CR>', desc = 'Delete Buffers to the Left' },
+      { '<S-h>', '<cmd>BufferLineCyclePrev<cr>', desc = 'Prev Buffer' },
+      { '<S-l>', '<cmd>BufferLineCycleNext<cr>', desc = 'Next Buffer' },
+      { '[b', '<cmd>BufferLineCyclePrev<cr>', desc = 'Prev Buffer' },
+      { ']b', '<cmd>BufferLineCycleNext<cr>', desc = 'Next Buffer' },
+      { '[B', '<cmd>BufferLineMovePrev<cr>', desc = 'Move buffer prev' },
+      { ']B', '<cmd>BufferLineMoveNext<cr>', desc = 'Move buffer next' },
+    },
+    opts = {
+      options = {
+        window = {
+          position = 'right',
+        },
+        offsets = {
+          {
+            filetype = 'neo-tree',
+            text = 'File Explorer',
+            highlight = 'Directory',
+            separator = true,
+          },
+        },
+      },
+    },
+    config = function(_, opts)
+      require('bufferline').setup(opts)
+      -- Fix bufferline when restoring a session
+      vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete' }, {
+        callback = function()
+          vim.schedule(function()
+            pcall(nvim_bufferline)
+          end)
+        end,
+      })
+    end,
   },
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -619,9 +750,9 @@ require('lazy').setup({
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
-          --['<CR>'] = cmp.mapping.confirm { select = true },
-          --['<Tab>'] = cmp.mapping.select_next_item(),
-          --['<S-Tab>'] = cmp.mapping.select_prev_item(),
+          ['<CR>'] = cmp.mapping.confirm { select = true },
+          ['<Tab>'] = cmp.mapping.select_next_item(),
+          ['<S-Tab>'] = cmp.mapping.select_prev_item(),
 
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
@@ -658,6 +789,22 @@ require('lazy').setup({
       }
     end,
   },
+  {
+    'alvarosevilla95/luatab.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {},
+    config = function()
+      require('luatab').setup {}
+    end,
+  },
+  {
+    'windwp/nvim-ts-autotag',
+    event = 'InsertEnter',
+    opts = {},
+    config = function()
+      require('nvim-ts-autotag').setup {}
+    end,
+  },
 
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
@@ -670,7 +817,7 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'tokyonight-storm'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
@@ -760,7 +907,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',

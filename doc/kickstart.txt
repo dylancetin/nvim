@@ -13,6 +13,7 @@ It is:
 - Somewhere that has a good start for the most common "IDE" type features:
     - autocompletion
     - goto-definition
+    -good thanks man 
     - find references
     - fuzzy finding
     - and hinting at what more can be done :)
