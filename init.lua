@@ -3,7 +3,24 @@
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
+vim.g.tabstop = 3
+vim.g.shiftwidth = 3
+vim.g.softtabstop = 3
+vim.g.expandtab = true
+vim.g.editorconfig = false
+vim.o.shiftwidth = 3
+vim.o.tabstop = 3
+vim.o.softtabstop = 3
 
+-- Insert 90 // lines
+function InsertNinetySlashLines()
+  for i = 1, 90 do
+    vim.cmd 'normal o//'
+  end
+end
+
+-- Map the function to a key
+vim.keymap.set('n', '<leader>l', InsertNinetySlashLines, { desc = 'Insert 90 // lines' })
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -116,7 +133,7 @@ vim.keymap.set('n', '<leader>w', function()
   if nextbuf ~= -1 and nextbuf ~= bufnr then
     vim.cmd 'bnext'
   else
-    vim.cmd 'NvimTreeToggle' -- Assuming you are using nvim-tree as file explorer
+    vim.cmd 'Neotree'
   end
   vim.cmd('bwipeout! ' .. bufnr)
 end, { desc = 'Close current buffer and go to next available buffer or file explorer' })
@@ -189,8 +206,13 @@ vim.api.nvim_create_autocmd('VimEnter', {
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-
+  --'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  {
+    'nmac427/guess-indent.nvim',
+    config = function()
+      require('guess-indent').setup {}
+    end,
+  },
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
 
@@ -489,6 +511,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
+        omnisharp = {},
         biome = {},
         lua_ls = {
           -- cmd = {...},
@@ -564,7 +587,21 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         c = { 'clang_format' },
+        javascript = { 'biome', 'prettier' },
+        typescript = { 'biome', 'prettier' },
+        javascriptreact = { 'biome', 'prettier' },
+        typescriptreact = { 'biome', 'prettier' },
+        svelte = { 'prettier' },
+        css = { 'prettier' },
+        html = { 'prettier' },
+        json = { 'prettier' },
+        yaml = { 'prettier' },
+        markdown = { 'prettier' },
+        graphql = { 'prettier' },
         lua = { 'stylua' },
+        python = { 'isort', 'black' },
+        csharp = { 'csharpier' },
+
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -612,6 +649,16 @@ require('lazy').setup({
             end
           end,
         },
+      },
+    },
+  },
+  {
+    'OlegGulevskyy/better-ts-errors.nvim',
+    dependencies = { 'MunifTanjim/nui.nvim' },
+    config = {
+      keymaps = {
+        toggle = '<leader>dd', -- default '<leader>dd'
+        go_to_definition = '<leader>dx', -- default '<leader>dx'
       },
     },
   },
@@ -940,6 +987,5 @@ require('lazy').setup({
     },
   },
 })
-
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
