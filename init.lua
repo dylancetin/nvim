@@ -399,7 +399,6 @@ require('lazy').setup({
           local map = function(keys, func, desc)
             vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
-
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
@@ -439,7 +438,7 @@ require('lazy').setup({
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
-          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          -- map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -511,6 +510,8 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
+        tsserver = {},
+        swift_mesonls = {},
         omnisharp = {},
         biome = {},
         lua_ls = {
@@ -560,6 +561,31 @@ require('lazy').setup({
     end,
   },
 
+  {
+    'Hoffs/omnisharp-extended-lsp.nvim',
+    lazy = true,
+    ft = 'cs', -- This will load the plugin only for C# files
+    dependencies = {
+      'neovim/nvim-lspconfig',
+    },
+  },
+  {
+    'smoka7/multicursors.nvim',
+    event = 'VeryLazy',
+    dependencies = {
+      'nvimtools/hydra.nvim',
+    },
+    opts = {},
+    cmd = { 'MCstart', 'MCvisual', 'MCclear', 'MCpattern', 'MCvisualPattern', 'MCunderCursor' },
+    keys = {
+      {
+        mode = { 'v', 'n' },
+        '<Leader>m',
+        '<cmd>MCstart<cr>',
+        desc = 'Create a selection for selected text or word under the cursor',
+      },
+    },
+  },
   { -- Autoformat
     'stevearc/conform.nvim',
     lazy = false,
@@ -591,8 +617,9 @@ require('lazy').setup({
         typescript = { 'biome', 'prettier' },
         javascriptreact = { 'biome', 'prettier' },
         typescriptreact = { 'biome', 'prettier' },
+        vue = { 'prettier' },
         svelte = { 'prettier' },
-        css = { 'prettier' },
+        css = { 'prettier', 'biome' },
         html = { 'prettier' },
         json = { 'prettier' },
         yaml = { 'prettier' },
@@ -600,7 +627,7 @@ require('lazy').setup({
         graphql = { 'prettier' },
         lua = { 'stylua' },
         python = { 'isort', 'black' },
-        csharp = { 'csharpier' },
+        --csharp = { 'csharpier' },
 
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
@@ -659,6 +686,43 @@ require('lazy').setup({
       keymaps = {
         toggle = '<leader>dd', -- default '<leader>dd'
         go_to_definition = '<leader>dx', -- default '<leader>dx'
+      },
+    },
+  },
+  {
+    'folke/trouble.nvim',
+    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    cmd = 'Trouble',
+    keys = {
+      {
+        '<leader>xx',
+        '<cmd>Trouble diagnostics toggle<cr>',
+        desc = 'Diagnostics (Trouble)',
+      },
+      {
+        '<leader>xX',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+        desc = 'Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>cs',
+        '<cmd>Trouble symbols toggle focus=false<cr>',
+        desc = 'Symbols (Trouble)',
+      },
+      {
+        '<leader>cl',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP Definitions / references / ... (Trouble)',
+      },
+      {
+        '<leader>xL',
+        '<cmd>Trouble loclist toggle<cr>',
+        desc = 'Location List (Trouble)',
+      },
+      {
+        '<leader>xQ',
+        '<cmd>Trouble qflist toggle<cr>',
+        desc = 'Quickfix List (Trouble)',
       },
     },
   },
@@ -859,16 +923,23 @@ require('lazy').setup({
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+  },
+  {
+    'zenbones-theme/zenbones.nvim',
+    -- Optionally install Lush. Allows for more configuration or extending the colorscheme
+    -- If you don't want to install lush, make sure to set g:zenbones_compat = 1
+    -- In Vim, compat mode is turned on as Lush only works in Neovim.
+    requires = 'rktjmp/lush.nvim',
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-storm'
-
-      -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
+      vim.cmd.colorscheme 'forestbones'
     end,
+  },
+  {
+    'rktjmp/lush.nvim',
+    -- Optionally install Zenbones. Allows for more configuration or extending the colorscheme
+    -- If you don't want to install zenbones, make sure to set g:zenbones_compat = 1
+    -- In Vim, compat mode is turned on as Lush only works in Neovim.
+    requires = 'zenbones-theme/zenbones.nvim',
   },
 
   -- Highlight todo, notes, etc in comments
