@@ -19,6 +19,12 @@ function InsertNinetySlashLines()
   end
 end
 
+-- views can only be fully collapsed with the global statusline
+vim.opt.laststatus = 3
+-- Default splitting will cause your main splits to jump when opening an edgebar.
+-- To prevent this, set `splitkeep` to either `screen` or `topline`.
+vim.opt.splitkeep = 'screen'
+
 -- Map the function to a key
 vim.keymap.set('n', '<leader>l', InsertNinetySlashLines, { desc = 'Insert 90 // lines' })
 -- Set to true if you have a Nerd Font installed and selected in the terminal
@@ -510,10 +516,38 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
-        tsserver = {},
+        tailwindcss = {
+          settings = {
+            tailwindCSS = {
+              experimental = {
+                classRegex = {
+                  { 'cva\\(([^)]*)\\)', '["\'`]([^"\'`]*).*?["\'`]' },
+                  { 'cx\\(([^)]*)\\)', "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+                },
+              },
+            },
+          },
+        },
         swift_mesonls = {},
         omnisharp = {},
-        biome = {},
+        -- tsserver = {},
+        gopls = {
+          filetypes = { 'go' },
+        },
+        biome = {
+          filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
+        },
+        volar = {
+          filetypes = { 'vue' },
+          init_options = {
+            vue = {
+              hybridMode = false,
+            },
+          },
+        },
+        eslint = {
+          filetypes = { 'vue' },
+        },
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -556,6 +590,26 @@ require('lazy').setup({
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
+        },
+      }
+    end,
+  },
+
+  {
+    'pmizio/typescript-tools.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+    opts = {},
+    config = function()
+      require('typescript-tools').setup {
+        settings = {
+          tsserver_plugins = {
+            '@vuedx/typescript-plugin-vue',
+            '@astrojs/ts-plugin',
+          },
+        },
+        jsx_close_tag = {
+          enable = false,
+          filetypes = { 'javascriptreact', 'typescriptreact' },
         },
       }
     end,
@@ -607,16 +661,16 @@ require('lazy').setup({
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = false, cpp = true }
         return {
-          timeout_ms = 500,
+          timeout_ms = 2000,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
         }
       end,
       formatters_by_ft = {
         c = { 'clang_format' },
-        javascript = { 'biome', 'prettier' },
-        typescript = { 'biome', 'prettier' },
-        javascriptreact = { 'biome', 'prettier' },
-        typescriptreact = { 'biome', 'prettier' },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescriptreact = { 'prettier' },
         vue = { 'prettier' },
         svelte = { 'prettier' },
         css = { 'prettier', 'biome' },
@@ -1013,6 +1067,26 @@ require('lazy').setup({
       --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
+  },
+  {
+    'yetone/avante.nvim',
+    event = 'LspAttach',
+    build = 'make',
+    opts = {},
+    dependencies = {
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+      'stevearc/dressing.nvim',
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      --- The below is optional, make sure to setup it properly if you have lazy=true
+      {
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
+        },
+        ft = { 'markdown', 'Avante' },
+      },
+    },
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
