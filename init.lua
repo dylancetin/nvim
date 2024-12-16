@@ -550,7 +550,7 @@ require('lazy').setup({
           },
         },
         eslint = {
-          filetypes = { 'vue' },
+          filetypes = { 'vue', 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
         },
         lua_ls = {
           -- cmd = {...},
@@ -615,6 +615,7 @@ require('lazy').setup({
           enable = false,
           filetypes = { 'javascriptreact', 'typescriptreact' },
         },
+        tsserver_max_memory = 'auto',
       }
     end,
   },
@@ -672,10 +673,10 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         c = { 'clang_format' },
-        javascript = { 'biome', 'prettier', stop_after_first = true },
-        typescript = { 'biome', 'prettier', stop_after_first = true },
-        javascriptreact = { 'biome', 'prettier', stop_after_first = true },
-        typescriptreact = { 'biome', 'prettier', stop_after_first = true },
+        javascript = { 'biome', 'prettier', stop_after_first = false },
+        typescript = { 'biome', 'prettier', stop_after_first = false },
+        javascriptreact = { 'biome', 'prettier', stop_after_first = false },
+        typescriptreact = { 'biome', 'prettier', stop_after_first = false },
         vue = { 'prettier' },
         svelte = { 'prettier' },
         css = { 'prettier', 'biome' },
