@@ -566,6 +566,9 @@ require('lazy').setup({
             },
           },
         },
+        beautysh = {
+          filetypes = { 'sh' },
+        },
       }
 
       -- Ensure the servers and tools above are installed
@@ -652,8 +655,8 @@ require('lazy').setup({
     version = '*', -- Use the latest tagged version
     opts = {}, -- This causes the plugin setup function to be called
     keys = {
-      { '<C-j>', '<Cmd>MultipleCursorsAddDown<CR>', mode = { 'n', 'x' }, desc = 'Add cursor and move down' },
-      { '<C-k>', '<Cmd>MultipleCursorsAddUp<CR>', mode = { 'n', 'x' }, desc = 'Add cursor and move up' },
+      { '<C-n>', '<Cmd>MultipleCursorsAddDown<CR>', mode = { 'n', 'x' }, desc = 'Add cursor and move down' },
+      { '<C-m>', '<Cmd>MultipleCursorsAddUp<CR>', mode = { 'n', 'x' }, desc = 'Add cursor and move up' },
 
       { '<C-Up>', '<Cmd>MultipleCursorsAddUp<CR>', mode = { 'n', 'i', 'x' }, desc = 'Add cursor and move up' },
       { '<C-Down>', '<Cmd>MultipleCursorsAddDown<CR>', mode = { 'n', 'i', 'x' }, desc = 'Add cursor and move down' },
@@ -711,6 +714,7 @@ require('lazy').setup({
         graphql = { 'prettier' },
         lua = { 'stylua' },
         python = { 'isort', 'black' },
+        sh = { 'beautysh' },
         --csharp = { 'csharpier' },
 
         -- Conform can also run multiple formatters sequentially
@@ -810,27 +814,27 @@ require('lazy').setup({
       },
     },
   },
-  {
-    'supermaven-inc/supermaven-nvim',
-    config = function()
-      require('supermaven-nvim').setup {
-        keymaps = {
-          accept_suggestion = '<S-Tab>',
-          clear_suggestion = '<C-]>',
-          accept_word = '<C-j>',
-          toggle = '<C-k>',
-        },
-        ignore_filetypes = { cpp = true },
-        color = {
-          suggestion_color = '#ffffff',
-          cterm = 244,
-        },
-        log_level = 'info', -- set to "off" to disable logging completely
-        disable_inline_completion = false, -- disables inline completion for use with cmp
-        disable_keymaps = false, -- disables built in keymaps for more manual control
-      }
-    end,
-  },
+  -- {
+  --   'supermaven-inc/supermaven-nvim',
+  --   config = function()
+  --     require('supermaven-nvim').setup {
+  --       keymaps = {
+  --         accept_suggestion = '<S-Tab>',
+  --         clear_suggestion = '<C-]>',
+  --         accept_word = '<C-j>',
+  --         toggle = '<C-k>',
+  --       },
+  --       ignore_filetypes = { cpp = true },
+  --       color = {
+  --         suggestion_color = '#ffffff',
+  --         cterm = 244,
+  --       },
+  --       log_level = 'info', -- set to "off" to disable logging completely
+  --       disable_inline_completion = false, -- disables inline completion for use with cmp
+  --       disable_keymaps = false, -- disables built in keymaps for more manual control
+  --     }
+  --   end,
+  -- },
   {
     'akinsho/bufferline.nvim',
     event = 'VeryLazy',
@@ -980,6 +984,9 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          per_filetype = {
+            codecompanion = { 'codecompanion' },
+          },
         },
       }
     end,
@@ -1098,23 +1105,54 @@ require('lazy').setup({
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
   },
+  -- {
+  --   'yetone/avante.nvim',
+  --   event = 'LspAttach',
+  --   build = 'make',
+  --   opts = {},
+  --   dependencies = {
+  --     'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+  --     'stevearc/dressing.nvim',
+  --     'nvim-lua/plenary.nvim',
+  --     'MunifTanjim/nui.nvim',
+  --     --- The below is optional, make sure to setup it properly if you have lazy=true
+  --     {
+  --       'MeanderingProgrammer/render-markdown.nvim',
+  --       opts = {
+  --         file_types = { 'markdown', 'Avante' },
+  --       },
+  --       ft = { 'markdown', 'Avante' },
+  --     },
+  --   },
+  -- },
   {
-    'yetone/avante.nvim',
-    event = 'LspAttach',
-    build = 'make',
-    opts = {},
+    'olimorris/codecompanion.nvim',
     dependencies = {
-      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-      'stevearc/dressing.nvim',
       'nvim-lua/plenary.nvim',
-      'MunifTanjim/nui.nvim',
-      --- The below is optional, make sure to setup it properly if you have lazy=true
-      {
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          file_types = { 'markdown', 'Avante' },
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = true,
+    opts = {
+      display = {
+        action_palette = {
+          provider = 'telescope', -- default|telescope|mini_pick
         },
-        ft = { 'markdown', 'Avante' },
+      },
+      strategies = {
+        -- Change the default chat adapter
+        chat = {
+          adapter = 'anthropic',
+          api_key = os.getenv 'ANTHROPIC_API_KEY',
+        },
+        inline = {
+          adapter = 'anthropic',
+          api_key = os.getenv 'ANTHROPIC_API_KEY',
+          layout = 'buffer', -- vertical|horizontal|buffer
+        },
+      },
+      opts = {
+        -- Set debug logging
+        log_level = 'DEBUG',
       },
     },
   },
