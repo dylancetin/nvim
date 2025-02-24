@@ -541,6 +541,7 @@ require('lazy').setup({
         biome = {
           filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
         },
+        kotlin_language_server = { filetypes = { 'kotlin', 'kts' } },
         volar = {
           filetypes = { 'vue' },
           init_options = {
@@ -611,6 +612,7 @@ require('lazy').setup({
         settings = {
           tsserver_plugins = {
             '@vuedx/typescript-plugin-vue',
+            '@vue/typescript-plugin',
             '@astrojs/ts-plugin',
           },
         },
