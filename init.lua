@@ -1,6 +1,3 @@
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.g.tabstop = 3
@@ -14,7 +11,7 @@ vim.o.softtabstop = 3
 
 -- Insert 90 // lines
 function InsertNinetySlashLines()
-  for i = 1, 90 do
+  for _ = 1, 90 do
     vim.cmd 'normal o//'
   end
 end
@@ -80,7 +77,7 @@ vim.opt.splitbelow = true
 --  See `:help 'list'`
 --  and `:help 'listchars'`
 vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars:append { tab = '» ', trail = '·', nbsp = '␣' }
 
 -- Preview substitutions live, as you type!
 vim.opt.inccommand = 'split'
@@ -112,15 +109,6 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
--- TIP: Disable arrow keys in normal mode
--- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
--- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
--- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
--- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
-
--- Keybinds to make split navigation easier.
---  Use CTRL+<hjkl> to switch between windows
---
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
@@ -199,20 +187,24 @@ vim.api.nvim_create_autocmd('VimEnter', {
   end,
 })
 
--- [[ Configure and install plugins ]]
---
---  To check the current status of your plugins, run
---    :Lazy
---
---  You can press `?` in this menu for help. Use `:q` to close the window
---
---  To update plugins you can run
---    :Lazy update
---
--- NOTE: Here is where you install your plugins.
-require('lazy').setup({
-  -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  --'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+require('lazy').setup {
+  ui = {
+    icons = vim.g.have_nerd_font and {} or {
+      cmd = '⌘',
+      config = '🛠',
+      event = '📅',
+      ft = '📂',
+      init = '⚙',
+      keys = '🗝',
+      plugin = '🔌',
+      runtime = '💻',
+      require = '🌙',
+      source = '📄',
+      start = '🚀',
+      task = '📌',
+      lazy = '💤 ',
+    },
+  },
   {
     'nmac427/guess-indent.nvim',
     config = function()
@@ -220,43 +212,22 @@ require('lazy').setup({
     end,
   },
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
-
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
+  {
+    'numToStr/Comment.nvim',
+    dependencies = {
+      'JoosepAlviste/nvim-ts-context-commentstring',
     },
+    opts = function()
+      return {
+        pre_hook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook(),
+      }
+    end,
   },
-
-  -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
-  --
-  -- This is often very useful to both group configuration, as well as handle
-  -- lazy loading plugins that don't need to be loaded immediately at startup.
-  --
-  -- For example, in the following configuration, we use:
-  --  event = 'VimEnter'
-  --
-  -- which loads which-key before all the UI elements are loaded. Events can be
-  -- normal autocommands events (`:help autocmd-events`).
-  --
-  -- Then, because we use the `config` key, the configuration only runs
-  -- after the plugin has been loaded:
-  --  config = function() ... end
-
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
-    event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    config = function() -- This is the function that runs, AFTER loading
+    event = 'VimEnter',
+    config = function()
       require('which-key').setup()
-
-      -- Document existing key chains
       require('which-key').add {
         { '<leader>c', group = '[C]ode' },
         { '<leader>d', group = '[D]ocument' },
@@ -276,53 +247,19 @@ require('lazy').setup({
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
         'nvim-telescope/telescope-fzf-native.nvim',
-
-        -- `build` is used to run some command when the plugin is installed/updated.
-        -- This is only run then, not every time Neovim starts up.
         build = 'make',
-
-        -- `cond` is a condition used to determine whether this plugin should be
-        -- installed and loaded.
         cond = function()
           return vim.fn.executable 'make' == 1
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
-
-      -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
-      -- Telescope is a fuzzy finder that comes with a lot of different things that
-      -- it can fuzzy find! It's more than just a "file finder", it can search
-      -- many different aspects of Neovim, your workspace, LSP, and more!
-      --
       -- The easiest way to use Telescope, is to start by doing something like:
       --  :Telescope help_tags
-      --
-      -- After running this command, a window will open up and you're able to
-      -- type in the prompt window. You'll see a list of `help_tags` options and
-      -- a corresponding preview of the help.
-      --
-      -- Two important keymaps to use while in Telescope are:
-      --  - Insert mode: <c-/>
-      --  - Normal mode: ?
-      --
-      -- This opens a window that shows you all of the keymaps for the current
-      -- Telescope picker. This is really useful to discover what Telescope can
-      -- do as well as how to actually do it!
 
-      -- [[ Configure Telescope ]]
-      -- See `:help telescope` and `:help telescope.setup()`
       require('telescope').setup {
-        -- You can put your default mappings / updates / etc. in here
-        --  All the info you're looking for is in `:help telescope.setup()`
-        --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
         pickers = {
           colorscheme = {
             enable_preview = true,
@@ -589,6 +526,8 @@ require('lazy').setup({
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
+        ensure_installed = {},
+        automatic_installation = {},
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -633,26 +572,7 @@ require('lazy').setup({
       'neovim/nvim-lspconfig',
     },
   },
-  -- NOTE: Trying a new plugin for multicursors
-  --
-  -- {
-  --   'smoka7/multicursors.nvim',
-  --   event = 'VeryLazy',
-  --   dependencies = {
-  --     'nvimtools/hydra.nvim',
-  --   },
-  --   opts = {},
-  --   cmd = { 'MCstart', 'MCvisual', 'MCclear', 'MCpattern', 'MCvisualPattern', 'MCunderCursor' },
-  --   keys = {
-  --     {
-  --       mode = { 'v', 'n' },
-  --       '<Leader>m',
-  --       '<cmd>MCstart<cr>',
-  --       desc = 'Create a selection for selected text or word under the cursor',
-  --     },
-  --   },
-  -- },
-  {
+  { -- Multiple Cursor plugin
     'brenton-leighton/multiple-cursors.nvim',
     version = '*', -- Use the latest tagged version
     opts = {}, -- This causes the plugin setup function to be called
@@ -701,11 +621,14 @@ require('lazy').setup({
         }
       end,
       formatters_by_ft = {
+        -- You can use a sub-list to tell conform to run *until* a formatter
+        -- is found.
+        -- javascript = { { "prettierd", "prettier" } },
         c = { 'clang_format' },
-        javascript = { 'biome', 'prettier', stop_after_first = false },
-        typescript = { 'biome', 'prettier', stop_after_first = false },
-        javascriptreact = { 'biome', 'prettier', stop_after_first = false },
-        typescriptreact = { 'biome', 'prettier', stop_after_first = false },
+        javascript = { { 'biome', 'prettier' } },
+        typescript = { { 'biome', 'prettier' } },
+        javascriptreact = { { 'biome', 'prettier' } },
+        typescriptreact = { { 'biome', 'prettier' } },
         vue = { 'prettier' },
         svelte = { 'prettier' },
         css = { 'prettier', 'biome' },
@@ -717,14 +640,6 @@ require('lazy').setup({
         lua = { 'stylua' },
         python = { 'isort', 'black' },
         sh = { 'beautysh' },
-        --csharp = { 'csharpier' },
-
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use a sub-list to tell conform to run *until* a formatter
-        -- is found.
-        -- javascript = { { "prettierd", "prettier" } },
       },
     },
   },
@@ -734,22 +649,14 @@ require('lazy').setup({
     version = '*',
     dependencies = {
       'nvim-lua/plenary.nvim',
-      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+      'nvim-tree/nvim-web-devicons',
       'MunifTanjim/nui.nvim',
+      { '3rd/image.nvim', opts = {} },
     },
     cmd = 'Neotree',
     keys = {
-      { '<leader>e', ':Neotree reveal<CR>', { desc = 'NeoTree reveal' } },
+      { '<leader>e', ':Neotree reveal right<CR>', { desc = 'NeoTree reveal' } },
     },
-    init = function()
-      vim.g.neo_tree_remove_legacy_commands = true
-      if vim.fn.argc() == 1 then
-        local stat = vim.loop.fs_stat(vim.fn.argv(0))
-        if stat and stat.type == 'directory' then
-          require 'neo-tree'
-        end
-      end
-    end,
     opts = {
       filesystem = {
         window = {
@@ -772,16 +679,16 @@ require('lazy').setup({
   {
     'OlegGulevskyy/better-ts-errors.nvim',
     dependencies = { 'MunifTanjim/nui.nvim' },
-    config = {
+    opts = {
       keymaps = {
-        toggle = '<leader>dd', -- default '<leader>dd'
-        go_to_definition = '<leader>dx', -- default '<leader>dx'
+        toggle = '<leader>de',
+        go_to_definition = '<leader>dx',
       },
     },
   },
   {
     'folke/trouble.nvim',
-    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    opts = {},
     cmd = 'Trouble',
     keys = {
       {
@@ -812,31 +719,10 @@ require('lazy').setup({
       {
         '<leader>xQ',
         '<cmd>Trouble qflist toggle<cr>',
-        desc = 'Quickfix List (Trouble)',
+        desc = 'Quickfix List (Troube)',
       },
     },
   },
-  -- {
-  --   'supermaven-inc/supermaven-nvim',
-  --   config = function()
-  --     require('supermaven-nvim').setup {
-  --       keymaps = {
-  --         accept_suggestion = '<S-Tab>',
-  --         clear_suggestion = '<C-]>',
-  --         accept_word = '<C-j>',
-  --         toggle = '<C-k>',
-  --       },
-  --       ignore_filetypes = { cpp = true },
-  --       color = {
-  --         suggestion_color = '#ffffff',
-  --         cterm = 244,
-  --       },
-  --       log_level = 'info', -- set to "off" to disable logging completely
-  --       disable_inline_completion = false, -- disables inline completion for use with cmp
-  --       disable_keymaps = false, -- disables built in keymaps for more manual control
-  --     }
-  --   end,
-  -- },
   {
     'akinsho/bufferline.nvim',
     event = 'VeryLazy',
@@ -897,22 +783,15 @@ require('lazy').setup({
           return 'make install_jsregexp'
         end)(),
         dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
       },
       'saadparwaiz1/cmp_luasnip',
-
-      -- Adds other completion capabilities.
-      --  nvim-cmp does not ship with all sources by default. They are split
-      --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
     },
@@ -1004,18 +883,12 @@ require('lazy').setup({
   {
     'windwp/nvim-ts-autotag',
     event = 'InsertEnter',
-    opts = {},
-    config = function()
-      require('nvim-ts-autotag').setup {}
-    end,
-  },
-
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+    opts = {
+      enable_close = true,
+      enable_rename = true,
+      enable_close_on_slash = true,
+    },
+    lazy = true,
   },
   {
     'zenbones-theme/zenbones.nvim',
@@ -1025,18 +898,31 @@ require('lazy').setup({
     requires = 'rktjmp/lush.nvim',
     init = function()
       vim.cmd.colorscheme 'forestbones'
+
+      local theme1 = 'forestbones'
+      local theme2 = 'neobones'
+      local is_theme1_active = true
+
+      local function toggle_theme()
+        if is_theme1_active then
+          vim.cmd.colorscheme(theme2)
+        else
+          vim.cmd.colorscheme(theme1)
+        end
+        is_theme1_active = not is_theme1_active
+        print('Switched to: ' .. (is_theme1_active and theme1 or theme2))
+      end
+
+      vim.keymap.set('n', 'zt', toggle_theme, { desc = 'Toggle Zenbones Theme' })
     end,
   },
   {
     'rktjmp/lush.nvim',
-    -- Optionally install Zenbones. Allows for more configuration or extending the colorscheme
-    -- If you don't want to install zenbones, make sure to set g:zenbones_compat = 1
-    -- In Vim, compat mode is turned on as Lush only works in Neovim.
     requires = 'zenbones-theme/zenbones.nvim',
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -1056,23 +942,12 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
       local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
       statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function()
         return '%2l:%-2v'
       end
-
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
   { -- Highlight, edit, and navigate code
@@ -1080,16 +955,24 @@ require('lazy').setup({
     build = ':TSUpdate',
     opts = {
       ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
         enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      context_commentstring = {
+        config = {
+          javascript = {
+            __default = '// %s',
+            jsx_element = '{/* %s */}',
+            jsx_fragment = '{/* %s */}',
+            jsx_attribute = '// %s',
+            comment = '// %s',
+          },
+          typescript = { __default = '// %s', __multiline = '/* %s */' },
+        },
+      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -1099,34 +982,11 @@ require('lazy').setup({
       ---@diagnostic disable-next-line: missing-fields
       require('nvim-treesitter.configs').setup(opts)
 
-      -- There are additional nvim-treesitter modules that you can use to interact
-      -- with nvim-treesitter. You should go explore a few and see what interests you:
-      --
       --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
       --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
   },
-  -- {
-  --   'yetone/avante.nvim',
-  --   event = 'LspAttach',
-  --   build = 'make',
-  --   opts = {},
-  --   dependencies = {
-  --     'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-  --     'stevearc/dressing.nvim',
-  --     'nvim-lua/plenary.nvim',
-  --     'MunifTanjim/nui.nvim',
-  --     --- The below is optional, make sure to setup it properly if you have lazy=true
-  --     {
-  --       'MeanderingProgrammer/render-markdown.nvim',
-  --       opts = {
-  --         file_types = { 'markdown', 'Avante' },
-  --       },
-  --       ft = { 'markdown', 'Avante' },
-  --     },
-  --   },
-  -- },
   {
     'olimorris/codecompanion.nvim',
     dependencies = {
@@ -1159,48 +1019,10 @@ require('lazy').setup({
     },
   },
 
-  -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
-  -- init.lua. If you want these files, they are in the repository, so you can just download them and
-  -- place them in the correct locations.
-
-  -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
-  --
-  --  Here are some example plugins that I've included in the Kickstart repository.
-  --  Uncomment any of the lines below to enable them (you will need to restart nvim).
-  --
   -- require 'kickstart.plugins.debug',
   require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
-
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --    This is the easiest way to modularize your config.
-  --
-  --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-  -- { import = 'custom.plugins' },
-}, {
-  ui = {
-    -- If you are using a Nerd Font: set icons to an empty table which will use the
-    -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
-    icons = vim.g.have_nerd_font and {} or {
-      cmd = '⌘',
-      config = '🛠',
-      event = '📅',
-      ft = '📂',
-      init = '⚙',
-      keys = '🗝',
-      plugin = '🔌',
-      runtime = '💻',
-      require = '🌙',
-      source = '📄',
-      start = '🚀',
-      task = '📌',
-      lazy = '💤 ',
-    },
-  },
-})
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
+  require 'kickstart.plugins.gitsigns',
+}
