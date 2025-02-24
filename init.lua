@@ -9,6 +9,8 @@ vim.o.shiftwidth = 3
 vim.o.tabstop = 3
 vim.o.softtabstop = 3
 
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 -- Insert 90 // lines
 function InsertNinetySlashLines()
   for _ = 1, 90 do
@@ -169,23 +171,6 @@ if not vim.loop.fs_stat(lazypath) then
   end
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
-
-vim.api.nvim_create_autocmd('VimEnter', {
-  callback = function(data)
-    -- buffer is a directory
-    local directory = vim.fn.isdirectory(data.file) == 1
-
-    if not directory then
-      return
-    end
-
-    -- change to the directory
-    vim.cmd.cd(data.file)
-
-    -- open the tree
-    require('neo-tree.command').execute { toggle = true, dir = data.file }
-  end,
-})
 
 require('lazy').setup {
   ui = {
@@ -891,6 +876,15 @@ require('lazy').setup {
     lazy = true,
   },
   {
+    'kvrohit/rasmus.nvim',
+    priority = 1000,
+    config = function()
+      vim.g.rasmus_italic_functions = true
+      vim.g.rasmus_bold_functions = true
+      vim.g.rasmus_variant = 'monochrome'
+    end,
+  },
+  {
     'zenbones-theme/zenbones.nvim',
     -- Optionally install Lush. Allows for more configuration or extending the colorscheme
     -- If you don't want to install lush, make sure to set g:zenbones_compat = 1
@@ -900,7 +894,7 @@ require('lazy').setup {
       vim.cmd.colorscheme 'forestbones'
 
       local theme1 = 'forestbones'
-      local theme2 = 'neobones'
+      local theme2 = 'rasmus'
       local is_theme1_active = true
 
       local function toggle_theme()
@@ -1026,3 +1020,22 @@ require('lazy').setup {
   -- require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns',
 }
+
+vim.api.nvim_create_autocmd('VimEnter', {
+  callback = function(data)
+    -- check if the provided file is a directory
+    if vim.fn.isdirectory(data.file) ~= 1 then
+      return
+    end
+
+    -- change Neovim's working directory
+    vim.cmd.cd(data.file)
+
+    -- open neo-tree on the right side (non-floating)
+    require('neo-tree.command').execute {
+      toggle = true,
+      dir = data.file,
+      position = 'right', -- use position instead of side
+    }
+  end,
+})
