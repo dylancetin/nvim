@@ -886,13 +886,15 @@ require('lazy').setup {
 
       local theme1 = 'forestbones'
       local theme2 = 'vimbones'
-      local is_theme1_active = true
+      local is_theme1_active = false
 
       local function toggle_theme()
         if is_theme1_active then
           vim.cmd.colorscheme(theme2)
+          vim.cmd.set 'background=light'
         else
           vim.cmd.colorscheme(theme1)
+          vim.cmd.set 'background=dark'
         end
         is_theme1_active = not is_theme1_active
         print('Switched to: ' .. (is_theme1_active and theme1 or theme2))
