@@ -882,12 +882,12 @@ require('lazy').setup {
     -- In Vim, compat mode is turned on as Lush only works in Neovim.
     requires = 'rktjmp/lush.nvim',
     init = function()
-      vim.cmd.colorscheme 'vimbones'
-
       local theme1 = 'forestbones'
-      local theme2 = 'vimbones'
+      local theme2 = 'zenbones'
       local is_theme1_active = false
 
+      vim.cmd.colorscheme(theme2)
+      vim.cmd.set 'background=light'
       local function toggle_theme()
         if is_theme1_active then
           vim.cmd.colorscheme(theme2)
