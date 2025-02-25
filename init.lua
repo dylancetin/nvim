@@ -883,7 +883,7 @@ require('lazy').setup {
     requires = 'rktjmp/lush.nvim',
     init = function()
       local theme1 = 'forestbones'
-      local theme2 = 'zenbones'
+      local theme2 = 'rosebones'
       local is_theme1_active = false
 
       vim.cmd.colorscheme(theme2)
