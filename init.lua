@@ -11,12 +11,6 @@ vim.o.softtabstop = 3
 
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
--- Insert 90 // lines
-function InsertNinetySlashLines()
-  for _ = 1, 90 do
-    vim.cmd 'normal o//'
-  end
-end
 
 -- views can only be fully collapsed with the global statusline
 vim.opt.laststatus = 3
@@ -25,7 +19,13 @@ vim.opt.laststatus = 3
 vim.opt.splitkeep = 'screen'
 
 -- Map the function to a key
-vim.keymap.set('n', '<leader>l', InsertNinetySlashLines, { desc = 'Insert 90 // lines' })
+vim.keymap.set('n', '<leader>cc', function()
+  for _ = 0, 90 do
+    vim.cmd 'normal o'
+  end
+  vim.cmd 'normal v90kgcc'
+  vim.cmd 'normal 90j'
+end, { desc = 'Insert 90 // lines' })
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -610,10 +610,10 @@ require('lazy').setup {
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
         c = { 'clang_format' },
-        javascript = { { 'biome', 'prettier' } },
-        typescript = { { 'biome', 'prettier' } },
-        javascriptreact = { { 'biome', 'prettier' } },
-        typescriptreact = { { 'biome', 'prettier' } },
+        javascript = { 'biome', 'prettier', stop_after_first = true },
+        typescript = { 'biome', 'prettier', stop_after_first = true },
+        javascriptreact = { 'biome', 'prettier', stop_after_first = true },
+        typescriptreact = { 'biome', 'prettier', stop_after_first = true },
         vue = { 'prettier' },
         svelte = { 'prettier' },
         css = { 'prettier', 'biome' },
