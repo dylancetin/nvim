@@ -541,7 +541,7 @@ require('lazy').setup {
           },
         },
         jsx_close_tag = {
-          enable = false,
+          enable = true,
           filetypes = { 'javascriptreact', 'typescriptreact' },
         },
         tsserver_max_memory = 'auto',
@@ -876,25 +876,16 @@ require('lazy').setup {
     lazy = true,
   },
   {
-    'kvrohit/rasmus.nvim',
-    priority = 1000,
-    config = function()
-      vim.g.rasmus_italic_functions = true
-      vim.g.rasmus_bold_functions = true
-      vim.g.rasmus_variant = 'monochrome'
-    end,
-  },
-  {
     'zenbones-theme/zenbones.nvim',
     -- Optionally install Lush. Allows for more configuration or extending the colorscheme
     -- If you don't want to install lush, make sure to set g:zenbones_compat = 1
     -- In Vim, compat mode is turned on as Lush only works in Neovim.
     requires = 'rktjmp/lush.nvim',
     init = function()
-      vim.cmd.colorscheme 'forestbones'
+      vim.cmd.colorscheme 'vimbones'
 
       local theme1 = 'forestbones'
-      local theme2 = 'rasmus'
+      local theme2 = 'vimbones'
       local is_theme1_active = true
 
       local function toggle_theme()
