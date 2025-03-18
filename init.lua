@@ -172,6 +172,14 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+vim.api.nvim_create_user_command('LspLogClear', function()
+  local lsplogpath = vim.fn.stdpath 'state' .. '/lsp.log'
+  print(lsplogpath)
+  if io.close(io.open(lsplogpath, 'w+b')) == false then
+    vim.notify('Clearning LSP Log failed.', vim.log.levels.WARN)
+  end
+end, { nargs = 0 })
+
 require('lazy').setup {
   ui = {
     icons = vim.g.have_nerd_font and {} or {
@@ -429,7 +437,7 @@ require('lazy').setup {
         -- clangd = {},
         -- gopls = {},
         -- pyright = {},
-        -- rust_analyzer = {},
+        rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -456,12 +464,14 @@ require('lazy').setup {
         },
         swift_mesonls = {},
         omnisharp = {},
-        -- tsserver = {},
         gopls = {
           filetypes = { 'go' },
         },
         biome = {
-          filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
+          filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact', 'json', 'jsonc' },
+        },
+        jsonls = {
+          filetypes = { 'jsonc' },
         },
         kotlin_language_server = { filetypes = { 'kotlin', 'kts' } },
         volar = {
@@ -472,6 +482,7 @@ require('lazy').setup {
             },
           },
         },
+        astro = {},
         eslint = {
           filetypes = { 'vue', 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
         },
@@ -610,10 +621,10 @@ require('lazy').setup {
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
         c = { 'clang_format' },
-        javascript = { 'biome', 'prettier', stop_after_first = true },
-        typescript = { 'biome', 'prettier', stop_after_first = true },
-        javascriptreact = { 'biome', 'prettier', stop_after_first = true },
-        typescriptreact = { 'biome', 'prettier', stop_after_first = true },
+        javascript = { 'prettier', 'biome', stop_after_first = true },
+        typescript = { 'prettier', 'biome', stop_after_first = true },
+        javascriptreact = { 'prettier', 'biome', stop_after_first = true },
+        typescriptreact = { 'prettier', 'biome', stop_after_first = true },
         vue = { 'prettier' },
         svelte = { 'prettier' },
         css = { 'prettier', 'biome' },
