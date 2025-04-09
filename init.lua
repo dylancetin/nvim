@@ -6,8 +6,6 @@ vim.g.softtabstop = 3
 vim.g.expandtab = true
 vim.g.editorconfig = false
 vim.o.shiftwidth = 3
-vim.o.tabstop = 3
-vim.o.softtabstop = 3
 
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -111,28 +109,15 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+-- Tab management keymaps
+vim.keymap.set('n', '<C-T>', ':tabnew<CR>', { desc = 'Open new tab', noremap = true, silent = true })
+vim.keymap.set('n', '<C-t>', ':term<CR>', { desc = 'New Terminal Buffer', noremap = true, silent = true })
+
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
--- Tab management keymaps
-vim.keymap.set('n', '<C-t>', ':tabnew<CR>', { desc = 'Open new tab' })
-vim.keymap.set('n', '<Tab>', '<cmd>BufferLineCycleNext<CR>', { desc = 'Next buffer' })
-vim.keymap.set('n', '<S-Tab>', '<cmd>BufferLineCyclePrev<CR>', { desc = 'Previous buffer' })
-
-vim.keymap.set('n', '<leader>w', function()
-  local bufnr = vim.fn.bufnr()
-  local nextbuf = vim.fn.bufnr '#'
-
-  if nextbuf ~= -1 and nextbuf ~= bufnr then
-    vim.cmd 'bnext'
-  else
-    vim.cmd 'Neotree'
-  end
-  vim.cmd('bwipeout! ' .. bufnr)
-end, { desc = 'Close current buffer and go to next available buffer or file explorer' })
 
 -- Move cursor by words with Alt + Arrow keys in normal mode
 vim.api.nvim_set_keymap('n', '<A-Left>', 'b', { noremap = true, silent = true })
@@ -146,12 +131,7 @@ vim.api.nvim_set_keymap('i', '<A-Right>', '<C-o>w', { noremap = true, silent = t
 vim.api.nvim_set_keymap('v', '<A-Left>', 'b', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('v', '<A-Right>', 'w', { noremap = true, silent = true })
 
--- [[ Basic Autocommands ]]
---  See `:help lua-guide-autocommands`
-
 -- Highlight when yanking (copying) text
---  Try it with `yap` in normal mode
---  See `:help vim.highlight.on_yank()`
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
@@ -316,7 +296,6 @@ require('lazy').setup {
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
-      -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
 
       -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
@@ -417,22 +396,9 @@ require('lazy').setup {
         end,
       })
 
-      -- LSP servers and clients are able to communicate to each other what features they support.
-      --  By default, Neovim doesn't support everything that is in the LSP specification.
-      --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
-      --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
-      -- Enable the following language servers
-      --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
-      --
-      --  Add any additional override configuration in the following tables. Available keys are:
-      --  - cmd (table): Override the default command used to start the server
-      --  - filetypes (table): Override the default list of associated filetypes for the server
-      --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
-      --  - settings (table): Override the default settings passed when initializing the server.
-      --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
         -- gopls = {},
@@ -505,19 +471,11 @@ require('lazy').setup {
         },
       }
 
-      -- Ensure the servers and tools above are installed
-      --  To check the current status of installed tools and/or manually install
-      --  other tools, you can run
-      --    :Mason
-      --
-      --  You can press `g?` for help in this menu.
       require('mason').setup()
 
-      -- You can add other tools here that you want Mason to install
-      -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
+        'stylua',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -527,9 +485,6 @@ require('lazy').setup {
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for tsserver)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
@@ -643,6 +598,7 @@ require('lazy').setup {
   {
     'nvim-neo-tree/neo-tree.nvim',
     version = '*',
+    branch = 'v3.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-tree/nvim-web-devicons',
@@ -653,21 +609,32 @@ require('lazy').setup {
     keys = {
       { '<leader>e', ':Neotree reveal right<CR>', { desc = 'NeoTree reveal' } },
     },
+    lazy = false,
+    ---@module "neo-tree"
+    ---@type neotree.Config?
     opts = {
       filesystem = {
         window = {
           mappings = {
+            ['P'] = {
+              'toggle_preview',
+              config = {
+                use_float = false,
+                use_image_nvim = true,
+                title = 'Preview',
+              },
+            },
             ['\\'] = 'close_window',
             ['<tab>'] = 'toggle_node',
           },
         },
         commands = {
-          open_in_new_tab = function(state)
-            local node = state.tree:get_node()
-            if node.type == 'file' then
-              vim.cmd('tabnew ' .. node.path)
-            end
-          end,
+          -- open_in_new_tab = function(state)
+          --   local node = state.tree:get_node()
+          --   if node.type == 'file' then
+          --     vim.cmd('tabnew ' .. node.path)
+          --   end
+          -- end,
         },
       },
     },
@@ -734,24 +701,50 @@ require('lazy').setup {
       { ']b', '<cmd>BufferLineCycleNext<cr>', desc = 'Next Buffer' },
       { '[B', '<cmd>BufferLineMovePrev<cr>', desc = 'Move buffer prev' },
       { ']B', '<cmd>BufferLineMoveNext<cr>', desc = 'Move buffer next' },
+      { '<Tab>', '<cmd>BufferLineCycleNext<CR>', desc = 'Next buffer' },
+      { '<S-Tab>', '<cmd>BufferLineCyclePrev<CR>', desc = 'Previous buffer' },
     },
-    opts = {
-      options = {
-        window = {
-          position = 'right',
-        },
-        offsets = {
-          {
-            filetype = 'neo-tree',
-            text = 'File Explorer',
-            highlight = 'Directory',
-            separator = true,
+    config = function()
+      local bufferline = require 'bufferline'
+      bufferline.setup {
+        options = {
+          mode = 'buffers',
+          diagnostics = 'coc',
+          numbers = 'none',
+          modified_icon = '●',
+          color_icons = false,
+          tab_size = 0,
+          show_buffer_close_icons = false,
+          get_element_icon = function(element)
+            local icon, hl = require('nvim-web-devicons').get_icon_by_filetype(element.filetype, { default = false })
+            return icon, hl
+          end,
+          style_preset = {
+            bufferline.style_preset.minimal,
+            bufferline.style_preset.no_italic,
+          },
+          hover = {
+            enabled = false,
+          },
+          window = {
+            position = 'left',
+          },
+          offsets = {
+            {
+              filetype = 'neo-tree',
+              highlight = 'Directory',
+              separator = true,
+            },
           },
         },
-      },
-    },
-    config = function(_, opts)
-      require('bufferline').setup(opts)
+      }
+
+      vim.keymap.set('n', '<leader>w', function()
+        local bufnr = vim.fn.bufnr()
+        vim.cmd 'BufferLineCycleNext'
+        vim.cmd('bwipeout! ' .. bufnr)
+      end, { desc = 'Close current buffer and go to next available buffer or file explorer' })
+
       -- Fix bufferline when restoring a session
       vim.api.nvim_create_autocmd({ 'BufAdd', 'BufDelete' }, {
         callback = function()
@@ -769,15 +762,7 @@ require('lazy').setup {
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
-        build = (function()
-          -- Build Step is needed for regex support in snippets.
-          -- This step is not supported in many windows environments.
-          -- Remove the below condition to re-enable on windows.
-          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-            return
-          end
-          return 'make install_jsregexp'
-        end)(),
+        build = 'make install_jsregexp',
         dependencies = {
           {
             'rafamadriz/friendly-snippets',
@@ -869,14 +854,6 @@ require('lazy').setup {
     end,
   },
   {
-    'alvarosevilla95/luatab.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
-    opts = {},
-    config = function()
-      require('luatab').setup {}
-    end,
-  },
-  {
     'windwp/nvim-ts-autotag',
     event = 'InsertEnter',
     opts = {
@@ -891,7 +868,7 @@ require('lazy').setup {
     -- Optionally install Lush. Allows for more configuration or extending the colorscheme
     -- If you don't want to install lush, make sure to set g:zenbones_compat = 1
     -- In Vim, compat mode is turned on as Lush only works in Neovim.
-    requires = 'rktjmp/lush.nvim',
+    dependencies = 'rktjmp/lush.nvim',
     init = function()
       local theme1 = 'forestbones'
       local theme2 = 'rosebones'
@@ -914,11 +891,6 @@ require('lazy').setup {
       vim.keymap.set('n', 'zt', toggle_theme, { desc = 'Toggle Zenbones Theme' })
     end,
   },
-  {
-    'rktjmp/lush.nvim',
-    requires = 'zenbones-theme/zenbones.nvim',
-  },
-
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = true } },
 
@@ -1017,12 +989,10 @@ require('lazy').setup {
     },
   },
 
-  -- require 'kickstart.plugins.debug',
+  -- require 'kickstart.plugins.debug-go',
+  require 'kickstart.plugins.gitsigns',
   require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  require 'kickstart.plugins.gitsigns',
 }
 
 vim.api.nvim_create_autocmd('VimEnter', {
