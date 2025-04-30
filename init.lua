@@ -131,6 +131,23 @@ vim.api.nvim_set_keymap('i', '<A-Right>', '<C-o>w', { noremap = true, silent = t
 vim.api.nvim_set_keymap('v', '<A-Left>', 'b', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('v', '<A-Right>', 'w', { noremap = true, silent = true })
 
+-- Normal mode mappings (reverse)
+vim.api.nvim_set_keymap('n', 'Ğ', '[', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'Ü', ']', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'ğ', '{', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'ü', '}', { noremap = true, silent = true })
+
+-- Insert mode mappings (reverse)
+vim.api.nvim_set_keymap('i', 'Ğ', '[', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', 'Ü', ']', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', 'ğ', '{', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', 'ü', '}', { noremap = true, silent = true })
+
+-- Map [q to :cprev and ]q to :cnext in normal mode
+vim.api.nvim_set_keymap('n', '[q', ':cprev<CR>', { noremap = true, silent = true })
+
+vim.api.nvim_set_keymap('n', ']q', ':cnext<CR>', { noremap = true, silent = true })
+
 -- Highlight when yanking (copying) text
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
@@ -159,6 +176,25 @@ vim.api.nvim_create_user_command('LspLogClear', function()
     vim.notify('Clearning LSP Log failed.', vim.log.levels.WARN)
   end
 end, { nargs = 0 })
+
+local setStatuslineColors = function()
+  local set_default_hl = function(name, data)
+    data.default = true
+    vim.api.nvim_set_hl(0, name, data)
+  end
+
+  set_default_hl('MiniStatuslineModeNormal', { link = 'StatusLine' }) -- Modifies background of mode section in Normal
+  set_default_hl('MiniStatuslineModeInsert', { link = 'StatusLine' }) -- Modifies background of mode section in Insert
+  set_default_hl('MiniStatuslineModeVisual', { link = 'StatusLine' }) -- Modifies background of mode section in Visual
+  set_default_hl('MiniStatuslineModeReplace', { link = 'StatusLine' }) -- Modifies background of mode section in Replace
+  set_default_hl('MiniStatuslineModeCommand', { link = 'StatusLine' }) -- Modifies background of mode section in Command
+  set_default_hl('MiniStatuslineModeOther', { link = 'StatusLine' }) -- Modifies background of mode section in Other modes
+
+  set_default_hl('MiniStatuslineDevinfo', { link = 'StatusLine' }) -- Modifies background of dev info section (git, diff, diagnostics, lsp)
+  set_default_hl('MiniStatuslineFilename', { link = 'StatusLine' }) -- Modifies background of filename section
+  set_default_hl('MiniStatuslineFileinfo', { link = 'StatusLine' }) -- Modifies background of file info section
+  set_default_hl('MiniStatuslineInactive', { link = 'StatusLine' }) -- Modifies background of inactive window statusline
+end
 
 require('lazy').setup {
   ui = {
@@ -478,7 +514,6 @@ require('lazy').setup {
         'stylua',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
       require('mason-lspconfig').setup {
         ensure_installed = {},
         automatic_installation = {},
@@ -508,7 +543,7 @@ require('lazy').setup {
         },
         jsx_close_tag = {
           enable = true,
-          filetypes = { 'javascriptreact', 'typescriptreact' },
+          filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'astro' },
         },
         tsserver_max_memory = 'auto',
       }
@@ -732,8 +767,8 @@ require('lazy').setup {
           offsets = {
             {
               filetype = 'neo-tree',
-              highlight = 'Directory',
               separator = true,
+              padding = 0,
             },
           },
         },
@@ -854,16 +889,6 @@ require('lazy').setup {
     end,
   },
   {
-    'windwp/nvim-ts-autotag',
-    event = 'InsertEnter',
-    opts = {
-      enable_close = true,
-      enable_rename = true,
-      enable_close_on_slash = true,
-    },
-    lazy = true,
-  },
-  {
     'zenbones-theme/zenbones.nvim',
     -- Optionally install Lush. Allows for more configuration or extending the colorscheme
     -- If you don't want to install lush, make sure to set g:zenbones_compat = 1
@@ -911,13 +936,23 @@ require('lazy').setup {
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
-
+    end,
+  },
+  {
+    'dylancetin/mini.statusline',
+    -- dir = '~/.config/nvim/lua/modules/statusline',
+    config = function()
       local statusline = require 'mini.statusline'
       statusline.setup { use_icons = vim.g.have_nerd_font }
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function()
         return '%2l:%-2v'
       end
+      setStatuslineColors()
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        pattern = '*',
+        callback = setStatuslineColors,
+      })
     end,
   },
   { -- Highlight, edit, and navigate code
