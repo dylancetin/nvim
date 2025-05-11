@@ -1,6 +1,8 @@
 -- Adds git related signs to the gutter, as well as utilities for managing changes
 
-return {
+---@module "lazy"
+---@type LazySpec
+local t = {
   {
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -57,3 +59,5 @@ return {
     },
   },
 }
+
+return t

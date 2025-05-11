@@ -1,4 +1,6 @@
-return {
+---@module "lazy"
+---@type LazySpec
+local t = {
   { -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
     -- Enable `lukas-reineke/indent-blankline.nvim`
@@ -7,3 +9,5 @@ return {
     opts = {},
   },
 }
+
+return t

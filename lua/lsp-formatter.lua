@@ -1,4 +1,6 @@
-return {
+---@module "lazy"
+---@type LazySpec
+local t = {
   { -- Autoformat
     'stevearc/conform.nvim',
     lazy = false,
@@ -263,13 +265,14 @@ return {
             '@vuedx/typescript-plugin-vue',
             '@vue/typescript-plugin',
             '@astrojs/ts-plugin',
+            '@tailwindcss/language-server',
           },
+          jsx_close_tag = {
+            enable = true,
+            filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'astro', 'svelte', 'vue' },
+          },
+          tsserver_max_memory = 'auto',
         },
-        jsx_close_tag = {
-          enable = true,
-          filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'astro', 'svelte', 'vue' },
-        },
-        tsserver_max_memory = 'auto',
       }
     end,
   },
@@ -329,3 +332,4 @@ return {
     },
   },
 }
+return t
