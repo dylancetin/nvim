@@ -36,7 +36,8 @@ local t = {
         vue = { 'prettier' },
         svelte = { 'prettier' },
         css = { 'prettier', 'biome' },
-        html = { 'prettier' },
+        html = { 'prettier', 'htmlbeautifier', stop_after_first = true },
+        xml = { 'xmlformatter' },
         json = { 'prettier' },
         yaml = { 'prettier' },
         markdown = { 'prettier' },
@@ -61,6 +62,10 @@ local t = {
       -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
       -- used for completion, annotations and signatures of Neovim apis
       { 'folke/neodev.nvim', opts = {} },
+      {
+        'pmizio/typescript-tools.nvim',
+        dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+      },
     },
     config = function()
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -153,11 +158,13 @@ local t = {
         tailwindcss = {
           settings = {
             tailwindCSS = {
+              classFunctions = { 'tw', 'clsx', 'tw\\.[a-z-]+', 'cn' },
               experimental = {
                 classRegex = {
                   { 'cva\\(([^)]*)\\)', '["\'`]([^"\'`]*).*?["\'`]' },
                   { 'cx\\(([^)]*)\\)', "(?:'|\"|`)([^']*)(?:'|\"|`)" },
                   { 'cx\\(([^)]*)\\)', "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+                  { '(?:twMerge|twJoin|cn)\\(([^;]*)[\\);]', '[`\'"`]([^\'"`;]*)[`\'"`]' },
                   { 'Classes \\=([^;]*);', "'([^']*)'" },
                   { 'Classes \\=([^;]*);', '"([^"]*)"' },
                   { 'Classes \\=([^;]*);', '\\`([^\\`]*)\\`' },
@@ -172,25 +179,46 @@ local t = {
         biome = {
           filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact', 'json', 'jsonc' },
         },
-        vuels = {},
         jsonls = {
           filetypes = { 'jsonc' },
         },
         kotlin_language_server = { filetypes = { 'kotlin', 'kts' } },
-        volar = {
-          filetypes = { 'vue' },
-          init_options = {
-            vue = {
-              hybridMode = false,
-            },
+        astro = {
+          jsx_close_tag = {
+            enable = true,
           },
         },
-        astro = {},
         eslint = {
-          filetypes = { 'vue', 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
+          filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
         },
         beautysh = {
           filetypes = { 'sh' },
+        },
+        lua_ls = {
+          settings = {
+            Lua = {
+              runtime = {
+                -- Tell the language server which version of Lua you're using
+                -- (most likely LuaJIT in the case of Neovim)
+                version = 'LuaJIT',
+              },
+              diagnostics = {
+                -- Get the language server to recognize the `vim` global
+                globals = {
+                  'vim',
+                  'require',
+                },
+              },
+              workspace = {
+                -- Make the server aware of Neovim runtime files
+                library = vim.api.nvim_get_runtime_file('', true),
+              },
+              -- Do not send telemetry data containing a randomized but unique identifier
+              telemetry = {
+                enable = false,
+              },
+            },
+          },
         },
       }
 
@@ -201,45 +229,53 @@ local t = {
         'stylua',
       })
 
-      local lspconfig = require 'lspconfig'
-
-      lspconfig.lua_ls.setup {
-        settings = {
-          Lua = {
-            runtime = {
-              -- Tell the language server which version of Lua you're using
-              -- (most likely LuaJIT in the case of Neovim)
-              version = 'LuaJIT',
-            },
-            diagnostics = {
-              -- Get the language server to recognize the `vim` global
-              globals = {
-                'vim',
-                'require',
-              },
-            },
-            workspace = {
-              -- Make the server aware of Neovim runtime files
-              library = vim.api.nvim_get_runtime_file('', true),
-            },
-            -- Do not send telemetry data containing a randomized but unique identifier
-            telemetry = {
-              enable = false,
-            },
-          },
-        },
-      }
+      -- it is now deprecated with neovim 0.11
+      -- local lspconfig = require 'lspconfig'
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+
+      for server_name, config in pairs(servers) do
+        config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, config.capabilities or {})
+        -- lspconfig[server_name].setup(config)
+        vim.lsp.config(server_name, config)
+      end
+
       require('mason-lspconfig').setup {
         ensure_installed = {},
         automatic_installation = {},
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            lspconfig[server_name].setup(server)
-          end,
+      }
+
+      require('typescript-tools').setup {
+        filetypes = {
+          'typescript',
+          'javascript',
+          'javascriptreact',
+          'typescriptreact',
+          -- 'astro',
+          'svelte',
+          'vue',
+          -- 'vuedx',
+        },
+        settings = {
+          capabilities = capabilities,
+          tsserver_plugins = {
+            '@vue/typescript-plugin',
+            '@astrojs/ts-plugin',
+          },
+          jsx_close_tag = {
+            enable = true,
+            filetypes = {
+              'typescript',
+              'javascript',
+              'javascriptreact',
+              'typescriptreact',
+              'astro',
+              'svelte',
+              'vue',
+              'vuedx',
+            },
+          },
+          tsserver_max_memory = 'auto',
         },
       }
     end,
@@ -253,27 +289,6 @@ local t = {
     },
     config = function()
       require('lsp-file-operations').setup()
-    end,
-  },
-  {
-    'pmizio/typescript-tools.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
-    config = function()
-      require('typescript-tools').setup {
-        settings = {
-          tsserver_plugins = {
-            '@vuedx/typescript-plugin-vue',
-            '@vue/typescript-plugin',
-            '@astrojs/ts-plugin',
-            '@tailwindcss/language-server',
-          },
-          jsx_close_tag = {
-            enable = true,
-            filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'astro', 'svelte', 'vue' },
-          },
-          tsserver_max_memory = 'auto',
-        },
-      }
     end,
   },
   {
