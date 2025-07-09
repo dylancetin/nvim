@@ -737,3 +737,5 @@ vim.api.nvim_create_autocmd('ColorScheme', {
 })
 
 vim.cmd 'command! Qa qa'
+
+require 'custom.copy-visual-as-codeblock'

@@ -191,6 +191,7 @@ local t = {
         eslint = {
           filetypes = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' },
         },
+        html = {},
         beautysh = {
           filetypes = { 'sh' },
         },
