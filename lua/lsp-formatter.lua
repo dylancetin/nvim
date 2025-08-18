@@ -45,6 +45,8 @@ local t = {
         lua = { 'stylua' },
         python = { 'isort', 'black' },
         sh = { 'beautysh' },
+        latex = { 'tex-fmt' },
+        tex = { 'tex-fmt' },
       },
     },
   },
@@ -195,6 +197,7 @@ local t = {
         beautysh = {
           filetypes = { 'sh' },
         },
+        intelephense = {},
         lua_ls = {
           settings = {
             Lua = {
