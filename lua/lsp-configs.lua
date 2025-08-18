@@ -1,55 +1,6 @@
 ---@module "lazy"
 ---@type LazySpec
 local t = {
-  { -- Autoformat
-    'stevearc/conform.nvim',
-    lazy = false,
-    keys = {
-      {
-        '<leader>f',
-        function()
-          require('conform').format { async = true, lsp_fallback = true }
-        end,
-        mode = '',
-        desc = '[F]ormat buffer',
-      },
-    },
-    opts = {
-      notify_on_error = true,
-      notify_no_formatters = true,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = false, cpp = true }
-        return {
-          timeout_ms = 2500,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
-        }
-      end,
-      formatters_by_ft = {
-        c = { 'clang_format' },
-        javascript = { 'prettier', 'biome', stop_after_first = true },
-        typescript = { 'prettier', 'biome', stop_after_first = true },
-        javascriptreact = { 'prettier', 'biome', stop_after_first = true },
-        typescriptreact = { 'prettier', 'biome', stop_after_first = true },
-        vue = { 'prettier' },
-        svelte = { 'prettier' },
-        css = { 'prettier', 'biome' },
-        html = { 'prettier', 'htmlbeautifier', stop_after_first = true },
-        xml = { 'xmlformatter' },
-        json = { 'prettier' },
-        yaml = { 'prettier' },
-        markdown = { 'prettier' },
-        graphql = { 'prettier' },
-        lua = { 'stylua' },
-        python = { 'isort', 'black' },
-        sh = { 'beautysh' },
-        latex = { 'tex-fmt' },
-        tex = { 'tex-fmt' },
-      },
-    },
-  },
   { -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
@@ -158,6 +109,20 @@ local t = {
       local servers = {
         rust_analyzer = {},
         tailwindcss = {
+          filetypes = {
+            'html',
+            'razor',
+            'css',
+            'scss',
+            'javascript',
+            'typescript',
+            'javascriptreact',
+            'typescriptreact',
+            'vue',
+            'svelte',
+            'astro',
+            'astrojs',
+          },
           settings = {
             tailwindCSS = {
               classFunctions = { 'tw', 'clsx', 'tw\\.[a-z-]+', 'cn' },
@@ -197,6 +162,7 @@ local t = {
         beautysh = {
           filetypes = { 'sh' },
         },
+        ruff = {},
         intelephense = {},
         lua_ls = {
           settings = {
@@ -296,12 +262,56 @@ local t = {
     end,
   },
   {
-    'Hoffs/omnisharp-extended-lsp.nvim',
-    lazy = true,
-    ft = 'cs', -- This will load the plugin only for C# files
+    'seblyng/roslyn.nvim',
+    ft = { 'cs', 'razor' },
     dependencies = {
-      'neovim/nvim-lspconfig',
+      { 'tris203/rzls.nvim', config = true },
     },
+    init = function()
+      vim.filetype.add {
+        extension = { razor = 'razor', cshtml = 'razor' },
+      }
+    end,
+    config = function()
+      local mason = vim.fn.stdpath 'data' .. '/mason'
+      local roslyn_bin = mason .. '/bin/roslyn'
+      local rzls_root = mason .. '/packages/rzls/libexec'
+
+      -- Roslyn inkl. Razor-Integration (rzls)
+      local cmd = {
+        roslyn_bin,
+        '--stdio',
+        '--logLevel=Information',
+        '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
+        '--razorSourceGenerator=' .. vim.fs.joinpath(rzls_root, 'Microsoft.CodeAnalysis.Razor.Compiler.dll'),
+        '--razorDesignTimePath=' .. vim.fs.joinpath(rzls_root, 'Targets', 'Microsoft.NET.Sdk.Razor.DesignTime.targets'),
+        '--extension',
+        vim.fs.joinpath(rzls_root, 'RazorExtension', 'Microsoft.VisualStudioCode.RazorExtension.dll'),
+      }
+
+      vim.lsp.config('roslyn', {
+        cmd = cmd,
+        handlers = require 'rzls.roslyn_handlers',
+        settings = {
+          ['csharp|inlay_hints'] = {
+            csharp_enable_inlay_hints_for_implicit_object_creation = true,
+            csharp_enable_inlay_hints_for_implicit_variable_types = true,
+            csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+            csharp_enable_inlay_hints_for_types = true,
+            dotnet_enable_inlay_hints_for_indexer_parameters = true,
+            dotnet_enable_inlay_hints_for_literal_parameters = true,
+            dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+            dotnet_enable_inlay_hints_for_other_parameters = true,
+            dotnet_enable_inlay_hints_for_parameters = true,
+            dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+            dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+            dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+          },
+          ['csharp|code_lens'] = { dotnet_enable_references_code_lens = true },
+        },
+      })
+      vim.lsp.enable 'roslyn'
+    end,
   },
   {
     'OlegGulevskyy/better-ts-errors.nvim',

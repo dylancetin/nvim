@@ -190,7 +190,8 @@ require('lazy').setup {
       lazy = '💤 ',
     },
   },
-  require 'lsp-formatter',
+  require 'conform-formatter',
+  require 'lsp-configs',
   {
     'nmac427/guess-indent.nvim',
     config = function()
@@ -215,6 +216,7 @@ require('lazy').setup {
     config = function()
       require('which-key').setup()
       require('which-key').add {
+        { '<leader>b', group = '[B]ufferline' },
         { '<leader>c', group = '[C]ode' },
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
@@ -369,17 +371,10 @@ require('lazy').setup {
     'akinsho/bufferline.nvim',
     event = 'VeryLazy',
     keys = {
-      { '<leader>bp', '<Cmd>BufferLineTogglePin<CR>', desc = 'Toggle Pin' },
       { '<leader>bP', '<Cmd>BufferLineGroupClose ungrouped<CR>', desc = 'Delete Non-Pinned Buffers' },
       { '<leader>bo', '<Cmd>BufferLineCloseOthers<CR>', desc = 'Delete Other Buffers' },
       { '<leader>br', '<Cmd>BufferLineCloseRight<CR>', desc = 'Delete Buffers to the Right' },
       { '<leader>bl', '<Cmd>BufferLineCloseLeft<CR>', desc = 'Delete Buffers to the Left' },
-      { '<S-h>', '<cmd>BufferLineCyclePrev<cr>', desc = 'Prev Buffer' },
-      { '<S-l>', '<cmd>BufferLineCycleNext<cr>', desc = 'Next Buffer' },
-      { '[b', '<cmd>BufferLineCyclePrev<cr>', desc = 'Prev Buffer' },
-      { ']b', '<cmd>BufferLineCycleNext<cr>', desc = 'Next Buffer' },
-      { '[B', '<cmd>BufferLineMovePrev<cr>', desc = 'Move buffer prev' },
-      { ']B', '<cmd>BufferLineMoveNext<cr>', desc = 'Move buffer next' },
       { '<Tab>', '<cmd>BufferLineCycleNext<CR>', desc = 'Next buffer' },
       { '<S-Tab>', '<cmd>BufferLineCyclePrev<CR>', desc = 'Previous buffer' },
     },
@@ -475,8 +470,6 @@ require('lazy').setup {
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
 
-        -- For an understanding of why these mappings were
-        -- chosen, you will need to read `:help ins-completion`
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
         mapping = cmp.mapping.preset.insert {
@@ -629,65 +622,6 @@ require('lazy').setup {
     end,
   },
 
-  {
-    'yetone/avante.nvim',
-    event = 'VeryLazy',
-    version = false, -- Never set this value to "*"! Never!
-    opts = {
-      provider = 'openai',
-      openai = {
-        endpoint = 'https://api.openai.com/v1',
-        model = 'o4-mini', -- your desired model (or use gpt-4o, etc.)
-        timeout = 30000, -- Timeout in milliseconds, increase this for reasoning models
-        temperature = 0,
-        max_completion_tokens = 8192,
-        reasoning_effort = 'medium', -- low|medium|high, only used for reasoning models
-      },
-    },
-    build = 'make',
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter',
-      'stevearc/dressing.nvim',
-      'nvim-lua/plenary.nvim',
-      'MunifTanjim/nui.nvim',
-      --- The below dependencies are optional,
-      'echasnovski/mini.pick', -- for file_selector provider mini.pick
-      'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
-      'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
-      'ibhagwan/fzf-lua', -- for file_selector provider fzf
-      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-      'zbirenbaum/copilot.lua', -- for providers='copilot'
-      {
-        -- support for image pasting
-        'HakonHarnes/img-clip.nvim',
-        event = 'VeryLazy',
-        opts = {
-          -- recommended settings
-          default = {
-            embed_image_as_base64 = false,
-            prompt_for_file_name = false,
-            drag_and_drop = {
-              insert_mode = true,
-            },
-            -- required for Windows users
-            use_absolute_path = true,
-          },
-        },
-      },
-      {
-        -- Make sure to set this up properly if you have lazy=true
-        'MeanderingProgrammer/render-markdown.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
-        ---@module 'render-markdown'
-        ---@type render.md.UserConfig
-        opts = {
-          file_types = { 'markdown', 'Avante' },
-          completions = { lsp = { enabled = true } },
-        },
-        ft = { 'markdown', 'Avante' },
-      },
-    },
-  },
   require 'kickstart.plugins.gitsigns',
   require 'kickstart.plugins.indent_line',
 }
