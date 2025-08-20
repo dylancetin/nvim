@@ -20,6 +20,26 @@ local t = {
         dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
       },
     },
+    keys = {
+      {
+        '<leader>dk',
+        function()
+          vim.diagnostic.jump { count = -1, float = true }
+        end,
+        desc = '[D]iagnostic goto_prev [k]',
+        mode = 'n',
+      },
+      {
+        '<leader>dj',
+        function()
+          vim.diagnostic.jump { count = 1, float = true }
+        end,
+        desc = '[D]iagnostic goto_next [j]',
+        mode = 'n',
+      },
+      { '<leader>t', vim.diagnostic.open_float, desc = 'Show diagnostic [E]rror messages', mode = 'n' },
+      { '<leader>q', vim.diagnostic.setloclist, desc = 'Open diagnostic [Q]uickfix list', mode = 'n' },
+    },
     config = function()
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
@@ -163,6 +183,7 @@ local t = {
           filetypes = { 'sh' },
         },
         ruff = {},
+        pyright = {},
         intelephense = {},
         lua_ls = {
           settings = {
