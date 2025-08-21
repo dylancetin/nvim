@@ -1,5 +1,5 @@
 -- General Vim/text editor configurations
-require 'lua.vim-config'
+require 'custom.vim-config'
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -38,8 +38,8 @@ require('lazy').setup {
       lazy = '💤 ',
     },
   },
-  require 'conform-formatter',
-  require 'lsp-configs',
+  require 'custom.conform-formatter',
+  require 'custom.lsp-configs',
   {
     'nmac427/guess-indent.nvim',
     config = function()
@@ -70,6 +70,7 @@ require('lazy').setup {
         { '<leader>s', group = '[S]earch' },
         { '<leader>o', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
+        { '<leader>x', group = '[X] Trouble' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       }
     end,
