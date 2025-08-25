@@ -6,6 +6,8 @@ vim.g.softtabstop = 3
 vim.g.expandtab = true
 vim.g.editorconfig = false
 vim.o.shiftwidth = 3
+vim.o.tabstop = 3
+vim.o.softtabstop = 3
 
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -123,3 +125,5 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
+vim.cmd 'command! Qa qa'
