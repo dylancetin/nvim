@@ -32,7 +32,7 @@ local function open_term_and_run(cmd, cwd)
   -- Optional: mark buffer as unlisted
   vim.bo[buf].buflisted = false
   -- Go to insert mode so terminal is interactive
-  vim.cmd 'startinsert'
+  -- vim.cmd 'startinsert'
 end
 
 vim.api.nvim_create_user_command('Bun', function(opts)
