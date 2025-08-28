@@ -24,7 +24,10 @@ local function open_term_and_run(cmd, cwd)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_current_buf(buf)
 
-  vim.fn.termopen(cmd, { cwd = cwd })
+  -- Wrap the command to keep shell open after execution
+  local shell_cmd = table.concat(cmd, ' ') .. '; exec $SHELL'
+
+  vim.fn.termopen(shell_cmd, { cwd = cwd })
 
   -- Optional: mark buffer as unlisted
   vim.bo[buf].buflisted = false
