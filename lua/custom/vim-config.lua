@@ -127,3 +127,17 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 vim.cmd 'command! Qa qa'
+
+vim.api.nvim_create_autocmd('TermOpen', {
+  callback = function(data)
+    vim.keymap.set('n', '<leader>R', function()
+      vim.api.nvim_chan_send(vim.bo[data.buf].channel, '!!\n')
+    end, {
+      buffer = data.buf,
+      noremap = true,
+      silent = true,
+      desc = 'Re-run last shell command in terminal',
+    })
+  end,
+  desc = 'Apply specific keymap to new terminal buffers',
+})

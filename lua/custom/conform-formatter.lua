@@ -48,6 +48,7 @@ local t = {
         sh = { 'beautysh' },
         latex = { 'tex-fmt' },
         tex = { 'tex-fmt' },
+        toml = { 'taplo' },
       },
     },
   },

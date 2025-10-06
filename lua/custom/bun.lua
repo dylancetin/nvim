@@ -16,23 +16,40 @@ local function project_root()
   return vim.fn.getcwd()
 end
 
-local function open_term_and_run(cmd, cwd)
-  -- Open a horizontal split at the bottom
-  vim.cmd 'botright split'
-  vim.cmd 'resize 40'
-  -- Create a scratch buffer and start terminal job in it
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_set_current_buf(buf)
+local term_buf = nil
 
-  -- Wrap the command to keep shell open after execution
+local function open_term_and_run(cmd, cwd)
   local shell_cmd = table.concat(cmd, ' ') .. '; exec $SHELL'
 
-  vim.fn.termopen(shell_cmd, { cwd = cwd })
+  -- Check if we have an existing valid terminal buffer
+  if term_buf and vim.api.nvim_buf_is_valid(term_buf) then
+    -- Find the window with this buffer, or create a new window
+    local wins = vim.fn.win_findbuf(term_buf)
+    if #wins > 0 then
+      -- Buffer is already visible, switch to that window
+      vim.api.nvim_set_current_win(wins[1])
+    else
+      -- Buffer exists but not visible, create a split and show it
+      vim.cmd 'botright split'
+      vim.cmd 'resize 40'
+      vim.api.nvim_set_current_buf(term_buf)
+    end
 
-  -- Optional: mark buffer as unlisted
-  vim.bo[buf].buflisted = false
-  -- Go to insert mode so terminal is interactive
-  -- vim.cmd 'startinsert'
+    -- Send the new command to the existing terminal
+    vim.api.nvim_chan_send(vim.bo[term_buf].channel, shell_cmd .. '\n')
+  else
+    -- Create a new terminal buffer
+    vim.cmd 'botright split'
+    vim.cmd 'resize 40'
+    term_buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_set_current_buf(term_buf)
+
+    vim.fn.termopen(shell_cmd, { cwd = cwd })
+
+    -- Optional: mark buffer as unlisted
+    vim.bo[term_buf].buflisted = false
+  end
+  vim.cmd 'normal! G'
 end
 
 vim.api.nvim_create_user_command('Bun', function(opts)
