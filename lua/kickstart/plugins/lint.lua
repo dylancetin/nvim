@@ -7,6 +7,7 @@ return {
       local lint = require 'lint'
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
+        dockerfile = { 'hadolint' },
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
@@ -18,7 +19,6 @@ return {
       -- which will cause errors unless these tools are available:
       -- {
       --   clojure = { "clj-kondo" },
-      --   dockerfile = { "hadolint" },
       --   inko = { "inko" },
       --   janet = { "janet" },
       --   json = { "jsonlint" },

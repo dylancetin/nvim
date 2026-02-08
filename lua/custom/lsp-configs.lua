@@ -146,7 +146,7 @@ local t = {
           },
           settings = {
             tailwindCSS = {
-              classFunctions = { 'tw', 'clsx', 'tw\\.[a-z-]+', 'cn' },
+              classFunctions = { 'tw', 'clsx', 'tw\\.[a-z-]+', 'cn', 'cva', 'cx' },
               experimental = {
                 classRegex = {
                   { 'cva\\(([^)]*)\\)', '["\'`]([^"\'`]*).*?["\'`]' },
